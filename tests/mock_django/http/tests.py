@@ -1,8 +1,19 @@
-from unittest2 import TestCase
-from urllib import urlencode
+try:
+    # Python 2
+    from unittest2 import TestCase, skipIf
+except ImportError:
+    # Python 3
+    from unittest import TestCase, skipIf
 
+try:
+    # Python 2
+    from urllib import urlencode
+except ImportError:
+    # Python 3
+    from urllib.parse import urlencode
+
+import django
 from django.contrib.auth.models import AnonymousUser
-from django.utils.datastructures import MergeDict
 
 from mock import Mock
 
@@ -20,7 +31,9 @@ class WsgiHttpRequestTest(TestCase):
         self.assertEqual({}, wsgi_r.GET)
         self.assertEqual({}, wsgi_r.POST)
 
+    @skipIf(django.VERSION >= (1, 9), "MergeDict and REQUEST removed in Django 1.9")
     def test__get_request(self):
+        from django.utils.datastructures import MergeDict
         wsgi_r = WsgiHttpRequest()
         expected_items = MergeDict({}, {}).items()
 

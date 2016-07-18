@@ -8,8 +8,12 @@ mock_django.http
 
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest
-from django.utils.datastructures import MergeDict
-from urllib import urlencode
+try:
+    # Python 2
+    from urllib import urlencode
+except ImportError:
+    # Python 3
+    from urllib.parse import urlencode
 
 __all__ = ('MockHttpRequest',)
 
@@ -24,6 +28,7 @@ class WsgiHttpRequest(HttpRequest):
         self.POST = {}
 
     def _get_request(self):
+        from django.utils.datastructures import MergeDict
         if not hasattr(self, '_request'):
             self._request = MergeDict(self.POST, self.GET)
         return self._request
@@ -54,8 +59,8 @@ def MockHttpRequest(path='/', method='GET', GET=None, POST=None, META=None, user
             'HTTP_REFERER': '',
             'SERVER_NAME': 'testserver',
         }
-    if user is not None:
-        user = user
+    if user is None:
+        user = AnonymousUser()
 
     request = WsgiHttpRequest()
     request.path = request.path_info = path
